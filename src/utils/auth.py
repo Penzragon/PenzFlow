@@ -80,8 +80,10 @@ def has_permission(required_role):
     user_role = st.session_state.get('user_role', '')
     
     role_hierarchy = {
-        'administrator': 4,
+        'administrator': 5,
+        'sales_manager': 4,
         'manager': 3,
+        'salesman': 2,
         'sales_rep': 2,
         'user': 1,
         'viewer': 0

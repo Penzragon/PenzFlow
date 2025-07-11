@@ -13,15 +13,32 @@ PenzFlow is a comprehensive Enterprise Resource Planning (ERP) and Sales Force A
 - **Reports & Analytics**: Comprehensive business intelligence
 - **User Management**: Role-based access control
 
+### 📱 SFA (Sales Force Automation) Features
+- **SFA Dashboard**: Salesman-specific dashboard with daily metrics
+- **Attendance Management**: GPS-enabled check-in/check-out system
+- **Customer Visits**: Plan, track, and report customer visits
+- **Mobile Orders**: Create orders during customer visits
+- **Sales Activities**: Schedule and track calls, meetings, and follow-ups
+- **Sales Targets**: Set and monitor individual and team targets
+- **Expense Management**: Submit and track business expenses
+- **Route Planning**: Optimize daily customer visit routes
+- **GPS Tracking**: Real-time location tracking for field sales
+- **Performance Analytics**: Individual and team performance monitoring
+
 ### 📊 Key Capabilities
-- Interactive dashboards with real-time charts
-- Customer relationship tracking
+- Role-based interface (Admin, Manager, Salesman)
+- GPS-enabled attendance and visit tracking
+- Mobile-optimized order creation
+- Real-time sales performance monitoring
+- Interactive dashboards with Indonesian localization
+- Customer relationship tracking with visit history
 - Product catalog and inventory management
-- Sales order processing
-- Inventory alerts and stock management
+- Sales order processing with approval workflows
+- Expense claim management with receipt upload
 - Financial reporting and analytics
-- Multi-user support with role-based permissions
+- Multi-user support with hierarchical permissions
 - Data export capabilities (CSV, Excel)
+- Indonesian timezone (WIB) and currency (IDR) support
 
 ## Project Structure
 
@@ -77,8 +94,21 @@ PenzFlow/
 
 ## Default Login Credentials
 
-- **Admin User**: username: `admin`, password: `admin123`
-- **Demo User**: username: `demo`, password: `demo`
+### Administrator Access
+- **Admin User**: `username: admin`, `password: admin123`
+  - Full system access including ERP and SFA management
+
+### Sales Force Access  
+- **Sales Manager**: `username: manager1`, `password: manager123`
+  - SFA management and team oversight
+- **Salesman 1**: `username: salesman1`, `password: sales123`
+  - Field sales activities (Budi Santoso)
+- **Salesman 2**: `username: salesman2`, `password: sales123`
+  - Field sales activities (Sari Wulandari)
+
+### Demo Access
+- **Demo User**: `username: demo`, `password: demo`
+  - Limited access for demonstration
 
 ## Usage Guide
 

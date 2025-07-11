@@ -108,6 +108,179 @@ def init_database():
         )
     ''')
     
+    # SFA - Attendance table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS attendance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            check_in_time TIMESTAMP,
+            check_out_time TIMESTAMP,
+            location TEXT,
+            latitude REAL,
+            longitude REAL,
+            notes TEXT,
+            status TEXT DEFAULT 'present', -- 'present', 'absent', 'late'
+            date DATE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+    
+    # SFA - Customer Visits table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS customer_visits (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            customer_id INTEGER,
+            visit_date TIMESTAMP,
+            visit_type TEXT, -- 'sales_call', 'delivery', 'follow_up', 'complaint'
+            purpose TEXT,
+            notes TEXT,
+            result TEXT,
+            follow_up_required BOOLEAN DEFAULT 0,
+            follow_up_date DATE,
+            location TEXT,
+            latitude REAL,
+            longitude REAL,
+            duration INTEGER, -- in minutes
+            status TEXT DEFAULT 'planned', -- 'planned', 'in_progress', 'completed', 'cancelled'
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (customer_id) REFERENCES customers (id)
+        )
+    ''')
+    
+    # SFA - Sales Targets table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS sales_targets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            target_period TEXT, -- 'monthly', 'quarterly', 'yearly'
+            start_date DATE,
+            end_date DATE,
+            target_amount DECIMAL(15,2),
+            achieved_amount DECIMAL(15,2) DEFAULT 0,
+            target_visits INTEGER,
+            achieved_visits INTEGER DEFAULT 0,
+            target_customers INTEGER,
+            achieved_customers INTEGER DEFAULT 0,
+            status TEXT DEFAULT 'active', -- 'active', 'completed', 'paused'
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+    
+    # SFA - Sales Routes table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS sales_routes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            route_name TEXT,
+            day_of_week INTEGER, -- 0=Monday, 6=Sunday
+            customers TEXT, -- JSON array of customer IDs
+            estimated_duration INTEGER, -- in minutes
+            status TEXT DEFAULT 'active', -- 'active', 'inactive'
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+    
+    # SFA - Sales Activities table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS sales_activities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            customer_id INTEGER,
+            activity_type TEXT, -- 'call', 'email', 'meeting', 'demo', 'proposal'
+            activity_date TIMESTAMP,
+            subject TEXT,
+            description TEXT,
+            result TEXT,
+            next_action TEXT,
+            next_action_date DATE,
+            priority TEXT DEFAULT 'medium', -- 'low', 'medium', 'high'
+            status TEXT DEFAULT 'pending', -- 'pending', 'completed', 'cancelled'
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (customer_id) REFERENCES customers (id)
+        )
+    ''')
+    
+    # SFA - Mobile Orders table (for field sales)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS mobile_orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            customer_id INTEGER,
+            visit_id INTEGER,
+            order_number TEXT UNIQUE,
+            order_date TIMESTAMP,
+            total_amount DECIMAL(15,2),
+            status TEXT DEFAULT 'draft', -- 'draft', 'submitted', 'approved', 'rejected'
+            payment_terms TEXT,
+            delivery_date DATE,
+            special_instructions TEXT,
+            discount_percentage DECIMAL(5,2) DEFAULT 0,
+            tax_percentage DECIMAL(5,2) DEFAULT 11,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (customer_id) REFERENCES customers (id),
+            FOREIGN KEY (visit_id) REFERENCES customer_visits (id)
+        )
+    ''')
+    
+    # SFA - Mobile Order Items table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS mobile_order_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            mobile_order_id INTEGER,
+            product_id INTEGER,
+            quantity INTEGER,
+            unit_price DECIMAL(15,2),
+            discount_percentage DECIMAL(5,2) DEFAULT 0,
+            total_price DECIMAL(15,2),
+            notes TEXT,
+            FOREIGN KEY (mobile_order_id) REFERENCES mobile_orders (id),
+            FOREIGN KEY (product_id) REFERENCES products (id)
+        )
+    ''')
+    
+    # SFA - Expense Claims table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS expense_claims (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            claim_date DATE,
+            expense_type TEXT, -- 'travel', 'meal', 'accommodation', 'fuel', 'other'
+            amount DECIMAL(15,2),
+            description TEXT,
+            receipt_path TEXT,
+            status TEXT DEFAULT 'pending', -- 'pending', 'approved', 'rejected', 'paid'
+            approved_by INTEGER,
+            approved_date TIMESTAMP,
+            remarks TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (approved_by) REFERENCES users (id)
+        )
+    ''')
+    
+    # SFA - GPS Tracking table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS gps_tracking (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            latitude REAL,
+            longitude REAL,
+            accuracy REAL,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            activity TEXT, -- 'traveling', 'at_customer', 'break', 'office'
+            battery_level INTEGER,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+    
     # Insert default admin user if not exists
     cursor.execute("SELECT COUNT(*) FROM users WHERE username = 'admin'")
     if cursor.fetchone()[0] == 0:
@@ -122,6 +295,28 @@ def init_database():
         cursor.execute('''
             INSERT INTO users (username, password, email, role)
             VALUES ('demo', 'demo', 'demo@penzflow.com', 'user')
+        ''')
+    
+    # Insert salesman users if not exist
+    cursor.execute("SELECT COUNT(*) FROM users WHERE username = 'salesman1'")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute('''
+            INSERT INTO users (username, password, email, role)
+            VALUES ('salesman1', 'sales123', 'budi.santoso@penzflow.com', 'salesman')
+        ''')
+    
+    cursor.execute("SELECT COUNT(*) FROM users WHERE username = 'salesman2'")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute('''
+            INSERT INTO users (username, password, email, role)
+            VALUES ('salesman2', 'sales123', 'sari.wulandari@penzflow.com', 'salesman')
+        ''')
+    
+    cursor.execute("SELECT COUNT(*) FROM users WHERE username = 'manager1'")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute('''
+            INSERT INTO users (username, password, email, role)
+            VALUES ('manager1', 'manager123', 'ahmad.manager@penzflow.com', 'sales_manager')
         ''')
     
     # Insert sample data if tables are empty
@@ -180,6 +375,108 @@ def insert_sample_data(cursor):
             INSERT INTO sales_orders (order_number, customer_id, order_date, total_amount, status, payment_method, sales_rep, notes)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', orders)
+    
+    # Insert sample SFA data
+    insert_sfa_sample_data(cursor)
+
+def insert_sfa_sample_data(cursor):
+    """Insert sample SFA data for demonstration"""
+    from datetime import datetime, timedelta
+    
+    # Get salesman user IDs
+    cursor.execute("SELECT id FROM users WHERE role = 'salesman'")
+    salesman_ids = [row[0] for row in cursor.fetchall()]
+    
+    if not salesman_ids:
+        return
+    
+    # Sample attendance data
+    cursor.execute("SELECT COUNT(*) FROM attendance")
+    if cursor.fetchone()[0] == 0:
+        today = datetime.now().date()
+        attendance_data = []
+        
+        for days_back in range(7):  # Last 7 days
+            date = today - timedelta(days=days_back)
+            for salesman_id in salesman_ids:
+                check_in = datetime.combine(date, datetime.min.time().replace(hour=8, minute=30))
+                check_out = datetime.combine(date, datetime.min.time().replace(hour=17, minute=0))
+                attendance_data.append((
+                    salesman_id, check_in, check_out, 'Jakarta Office', -6.2088, 106.8456, 
+                    'Regular attendance', 'present', date
+                ))
+        
+        cursor.executemany('''
+            INSERT INTO attendance (user_id, check_in_time, check_out_time, location, latitude, longitude, notes, status, date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', attendance_data)
+    
+    # Sample customer visits
+    cursor.execute("SELECT COUNT(*) FROM customer_visits")
+    if cursor.fetchone()[0] == 0:
+        visits_data = [
+            (salesman_ids[0], 1, datetime.now() - timedelta(hours=2), 'sales_call', 'Product demonstration', 
+             'Showed new product line, customer interested', 'Customer will consider, follow up next week', 1, 
+             (datetime.now() + timedelta(days=7)).date(), 'PT. Teknologi Maju', -6.2297, 106.8269, 120, 'completed'),
+            (salesman_ids[0], 2, datetime.now() - timedelta(hours=4), 'follow_up', 'Follow up on previous order', 
+             'Discussed delivery timeline', 'Order confirmed, delivery scheduled', 0, None, 
+             'CV. Bisnis Sukses', -6.1944, 106.8229, 90, 'completed'),
+            (salesman_ids[1] if len(salesman_ids) > 1 else salesman_ids[0], 3, datetime.now() - timedelta(hours=1), 
+             'delivery', 'Product delivery and setup', 'Delivered products, provided training', 
+             'Customer satisfied, potential for future orders', 1, (datetime.now() + timedelta(days=14)).date(), 
+             'UD. Perdagangan Jaya', -6.2615, 106.7832, 150, 'completed')
+        ]
+        
+        cursor.executemany('''
+            INSERT INTO customer_visits (user_id, customer_id, visit_date, visit_type, purpose, notes, result, 
+            follow_up_required, follow_up_date, location, latitude, longitude, duration, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', visits_data)
+    
+    # Sample sales targets
+    cursor.execute("SELECT COUNT(*) FROM sales_targets")
+    if cursor.fetchone()[0] == 0:
+        from datetime import date
+        current_month_start = date.today().replace(day=1)
+        
+        targets_data = []
+        for salesman_id in salesman_ids:
+            targets_data.append((
+                salesman_id, 'monthly', current_month_start, 
+                date(current_month_start.year, current_month_start.month + 1, 1) - timedelta(days=1),
+                50000000,  # Rp 50 million target
+                35000000,  # Rp 35 million achieved
+                20, 15,    # 20 visits target, 15 achieved
+                10, 8      # 10 customers target, 8 achieved
+            ))
+        
+        cursor.executemany('''
+            INSERT INTO sales_targets (user_id, target_period, start_date, end_date, target_amount, achieved_amount, 
+            target_visits, achieved_visits, target_customers, achieved_customers)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', targets_data)
+    
+    # Sample sales activities
+    cursor.execute("SELECT COUNT(*) FROM sales_activities")
+    if cursor.fetchone()[0] == 0:
+        activities_data = [
+            (salesman_ids[0], 1, 'call', datetime.now() - timedelta(hours=3), 'Follow up call', 
+             'Called to check on product satisfaction', 'Customer happy with purchase', 
+             'Schedule maintenance visit', (datetime.now() + timedelta(days=30)).date(), 'medium', 'completed'),
+            (salesman_ids[0], 2, 'email', datetime.now() - timedelta(hours=6), 'Product catalog', 
+             'Sent new product catalog via email', 'Email delivered', 'Wait for customer response', 
+             (datetime.now() + timedelta(days=3)).date(), 'low', 'completed'),
+            (salesman_ids[1] if len(salesman_ids) > 1 else salesman_ids[0], 3, 'meeting', 
+             datetime.now() + timedelta(hours=2), 'Contract negotiation', 
+             'Discuss terms for bulk order', '', 'Prepare contract proposal', 
+             (datetime.now() + timedelta(days=1)).date(), 'high', 'pending')
+        ]
+        
+        cursor.executemany('''
+            INSERT INTO sales_activities (user_id, customer_id, activity_type, activity_date, subject, description, 
+            result, next_action, next_action_date, priority, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', activities_data)
 
 def get_connection():
     """Get database connection"""
