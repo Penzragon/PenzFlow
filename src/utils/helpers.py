@@ -1,8 +1,16 @@
 import streamlit as st
 from datetime import datetime
 import pandas as pd
+import pytz
 
-def format_currency(amount, currency='USD'):
+# Indonesian timezone
+INDONESIA_TZ = pytz.timezone('Asia/Jakarta')
+
+def get_indonesia_time():
+    """Get current time in Indonesian timezone (GMT+7)"""
+    return datetime.now(INDONESIA_TZ)
+
+def format_currency(amount, currency='IDR'):
     """Format amount as currency"""
     if currency == 'USD':
         return f"${amount:,.2f}"
@@ -10,14 +18,26 @@ def format_currency(amount, currency='USD'):
         return f"€{amount:,.2f}"
     elif currency == 'GBP':
         return f"£{amount:,.2f}"
+    elif currency == 'IDR':
+        # Format Indonesian Rupiah without decimal places
+        return f"Rp {amount:,.0f}"
     else:
         return f"{amount:,.2f} {currency}"
 
-def format_date(date_obj, format_str='%Y-%m-%d'):
-    """Format date object to string"""
+def format_date(date_obj, format_str='%d-%m-%Y'):
+    """Format date object to string using Indonesian date format (DD-MM-YYYY)"""
     if isinstance(date_obj, str):
         return date_obj
     return date_obj.strftime(format_str)
+
+def format_datetime(datetime_obj, format_str='%d-%m-%Y %H:%M WIB'):
+    """Format datetime object to string with Indonesian timezone"""
+    if isinstance(datetime_obj, str):
+        return datetime_obj
+    if datetime_obj.tzinfo is None:
+        # If naive datetime, assume it's UTC and convert to Indonesian time
+        datetime_obj = pytz.UTC.localize(datetime_obj).astimezone(INDONESIA_TZ)
+    return datetime_obj.strftime(format_str)
 
 def format_phone(phone):
     """Format phone number"""

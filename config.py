@@ -13,9 +13,9 @@ class Config:
     SESSION_TIMEOUT = 3600  # 1 hour in seconds
     
     # Business settings
-    DEFAULT_CURRENCY = 'USD'
-    DEFAULT_TAX_RATE = 0.08  # 8%
-    DEFAULT_TIMEZONE = 'UTC'
+    DEFAULT_CURRENCY = 'IDR'
+    DEFAULT_TAX_RATE = 0.11  # 11% PPN (Pajak Pertambahan Nilai) Indonesia
+    DEFAULT_TIMEZONE = 'Asia/Jakarta'  # GMT+7 (WIB - Waktu Indonesia Barat)
     
     # Pagination settings
     ITEMS_PER_PAGE = 50

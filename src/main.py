@@ -4,9 +4,17 @@ from datetime import datetime
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import pytz
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database.init_db import init_database
 from utils.auth import check_login, login_user, logout_user
 from utils.helpers import format_currency
+from config import Config
+
+# Set Indonesian timezone
+INDONESIA_TZ = pytz.timezone('Asia/Jakarta')
 
 # Configure page
 st.set_page_config(
@@ -123,7 +131,7 @@ def show_dashboard():
     with col1:
         st.metric(
             label="Total Sales",
-            value="$125,430",
+            value=format_currency(1875450000, 'IDR'),  # ~$125,430 converted to IDR
             delta="12.5%"
         )
     
@@ -180,11 +188,11 @@ def show_customers():
         # Sample customer data
         customers_data = {
             'ID': [1, 2, 3, 4, 5],
-            'Name': ['John Doe', 'Jane Smith', 'Bob Johnson', 'Alice Brown', 'Charlie Wilson'],
-            'Email': ['john@email.com', 'jane@email.com', 'bob@email.com', 'alice@email.com', 'charlie@email.com'],
-            'Phone': ['+1234567890', '+1234567891', '+1234567892', '+1234567893', '+1234567894'],
+            'Name': ['Budi Santoso', 'Sari Dewi', 'Ahmad Rahman', 'Indira Putri', 'Rizki Pratama'],
+            'Email': ['budi.santoso@email.com', 'sari.dewi@email.com', 'ahmad.rahman@email.com', 'indira.putri@email.com', 'rizki.pratama@email.com'],
+            'Phone': ['+62812-3456-7890', '+62813-4567-8901', '+62814-5678-9012', '+62815-6789-0123', '+62816-7890-1234'],  # Indonesian phone format
             'Total Orders': [15, 8, 23, 12, 6],
-            'Total Spent': ['$5,400', '$2,800', '$8,900', '$4,200', '$1,800']
+            'Total Spent': [format_currency(81000000, 'IDR'), format_currency(42000000, 'IDR'), format_currency(133500000, 'IDR'), format_currency(63000000, 'IDR'), format_currency(27000000, 'IDR')]
         }
         
         df = pd.DataFrame(customers_data)
@@ -217,7 +225,7 @@ def show_products():
             'SKU': ['PRD001', 'PRD002', 'PRD003', 'PRD004', 'PRD005'],
             'Name': ['Laptop Pro', 'Wireless Mouse', 'USB Cable', 'Monitor Stand', 'Keyboard'],
             'Category': ['Electronics', 'Accessories', 'Cables', 'Furniture', 'Input Devices'],
-            'Price': ['$999.99', '$29.99', '$9.99', '$49.99', '$79.99'],
+            'Price': [format_currency(14999000, 'IDR'), format_currency(449000, 'IDR'), format_currency(149000, 'IDR'), format_currency(749000, 'IDR'), format_currency(1199000, 'IDR')],
             'Stock': [25, 150, 200, 45, 80],
             'Status': ['In Stock', 'In Stock', 'In Stock', 'Low Stock', 'In Stock']
         }
@@ -252,9 +260,9 @@ def show_sales():
         # Sample sales data
         sales_data = {
             'Order ID': ['ORD001', 'ORD002', 'ORD003', 'ORD004', 'ORD005'],
-            'Customer': ['John Doe', 'Jane Smith', 'Bob Johnson', 'Alice Brown', 'Charlie Wilson'],
-            'Date': ['2024-01-15', '2024-01-16', '2024-01-17', '2024-01-18', '2024-01-19'],
-            'Amount': ['$1,299.99', '$89.99', '$2,499.99', '$599.99', '$199.99'],
+            'Customer': ['Budi Santoso', 'Sari Dewi', 'Ahmad Rahman', 'Indira Putri', 'Rizki Pratama'],
+            'Date': ['15-01-2024', '16-01-2024', '17-01-2024', '18-01-2024', '19-01-2024'],  # Indonesian date format DD-MM-YYYY
+            'Amount': [format_currency(19500000, 'IDR'), format_currency(1350000, 'IDR'), format_currency(37500000, 'IDR'), format_currency(9000000, 'IDR'), format_currency(3000000, 'IDR')],
             'Status': ['Completed', 'Pending', 'Shipped', 'Processing', 'Completed']
         }
         
@@ -266,10 +274,10 @@ def show_sales():
         with st.form("create_order"):
             col1, col2 = st.columns(2)
             with col1:
-                customer = st.selectbox("Customer", ["John Doe", "Jane Smith", "Bob Johnson", "Alice Brown"])
+                customer = st.selectbox("Customer", ["Budi Santoso", "Sari Dewi", "Ahmad Rahman", "Indira Putri", "Rizki Pratama"])
                 order_date = st.date_input("Order Date")
             with col2:
-                payment_method = st.selectbox("Payment Method", ["Credit Card", "Cash", "Bank Transfer"])
+                payment_method = st.selectbox("Payment Method", ["Credit Card", "Cash", "Bank Transfer", "Transfer Bank", "QRIS"])  # Added Indonesian payment methods
                 sales_rep = st.text_input("Sales Representative")
             
             st.subheader("Order Items")
@@ -331,11 +339,11 @@ def show_reports():
         # Sales metrics
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("Total Revenue", "$45,230", "15.2%")
+            st.metric("Total Revenue", format_currency(678450000, 'IDR'), "15.2%")  # ~$45,230 -> Rp 678,450,000
         with col2:
             st.metric("Orders Completed", "156", "8.7%")
         with col3:
-            st.metric("Average Order Value", "$290", "12.1%")
+            st.metric("Average Order Value", format_currency(4350000, 'IDR'), "12.1%")  # ~$290 -> Rp 4,350,000
         
         # Sales chart
         dates = pd.date_range(start=start_date, end=end_date, freq='D')[:30]
@@ -373,8 +381,8 @@ def show_settings():
     with tab1:
         st.subheader("General Settings")
         company_name = st.text_input("Company Name", value="PenzFlow Corp")
-        currency = st.selectbox("Currency", ["USD", "EUR", "GBP", "JPY"])
-        timezone = st.selectbox("Timezone", ["UTC", "EST", "PST", "GMT"])
+        currency = st.selectbox("Currency", ["IDR", "USD", "EUR", "GBP", "JPY"], index=0)
+        timezone = st.selectbox("Timezone", ["Asia/Jakarta (GMT+7)", "UTC", "EST", "PST", "GMT"], index=0)
         
         if st.button("Save General Settings"):
             st.success("Settings saved successfully!")
@@ -387,7 +395,7 @@ def show_settings():
             'Username': ['admin', 'sales1', 'manager', 'demo'],
             'Role': ['Administrator', 'Sales Rep', 'Manager', 'Demo User'],
             'Status': ['Active', 'Active', 'Active', 'Active'],
-            'Last Login': ['2024-01-20', '2024-01-19', '2024-01-20', '2024-01-20']
+            'Last Login': ['20-01-2024', '19-01-2024', '20-01-2024', '20-01-2024']  # Indonesian date format
         }
         
         df = pd.DataFrame(users_data)
@@ -416,7 +424,7 @@ def show_settings():
             st.info("**Framework:** Streamlit")
         
         with col2:
-            st.info("**Last Backup:** 2024-01-20")
+            st.info("**Last Backup:** 20-01-2024 14:30 WIB")  # Indonesian datetime format
             st.info("**System Status:** Healthy")
             st.info("**Uptime:** 15 days")
         

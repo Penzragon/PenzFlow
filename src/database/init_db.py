@@ -137,11 +137,11 @@ def insert_sample_data(cursor):
     cursor.execute("SELECT COUNT(*) FROM customers")
     if cursor.fetchone()[0] == 0:
         customers = [
-            ('John Doe', 'john@email.com', '+1234567890', 'Tech Corp', '123 Main St, City'),
-            ('Jane Smith', 'jane@email.com', '+1234567891', 'Business Inc', '456 Oak Ave, Town'),
-            ('Bob Johnson', 'bob@email.com', '+1234567892', 'Services LLC', '789 Pine Rd, Village'),
-            ('Alice Brown', 'alice@email.com', '+1234567893', 'Solutions Ltd', '321 Elm St, County'),
-            ('Charlie Wilson', 'charlie@email.com', '+1234567894', 'Enterprises Co', '654 Maple Dr, District')
+            ('Budi Santoso', 'budi.santoso@email.com', '+62812-3456-7890', 'PT Teknologi Maju', 'Jl. Sudirman No. 123, Jakarta Pusat'),
+            ('Sari Dewi', 'sari.dewi@email.com', '+62813-4567-8901', 'CV Bisnis Mandiri', 'Jl. Thamrin No. 456, Jakarta Selatan'),
+            ('Ahmad Rahman', 'ahmad.rahman@email.com', '+62814-5678-9012', 'PT Layanan Prima', 'Jl. Gatot Subroto No. 789, Jakarta Timur'),
+            ('Indira Putri', 'indira.putri@email.com', '+62815-6789-0123', 'PT Solusi Digital', 'Jl. Kuningan No. 321, Jakarta Selatan'),
+            ('Rizki Pratama', 'rizki.pratama@email.com', '+62816-7890-1234', 'PT Usaha Bersama', 'Jl. Rasuna Said No. 654, Jakarta Selatan')
         ]
         
         cursor.executemany('''
@@ -153,11 +153,11 @@ def insert_sample_data(cursor):
     cursor.execute("SELECT COUNT(*) FROM products")
     if cursor.fetchone()[0] == 0:
         products = [
-            ('PRD001', 'Laptop Pro', 'High-performance laptop for professionals', 'Electronics', 999.99, 750.00, 25, 10, 100, 'TechSupplier Inc'),
-            ('PRD002', 'Wireless Mouse', 'Ergonomic wireless mouse with long battery life', 'Accessories', 29.99, 15.00, 150, 50, 300, 'AccessoryHub'),
-            ('PRD003', 'USB Cable', 'High-speed USB-C cable 6ft', 'Cables', 9.99, 4.00, 200, 100, 500, 'CableCorp'),
-            ('PRD004', 'Monitor Stand', 'Adjustable monitor stand for better ergonomics', 'Furniture', 49.99, 25.00, 45, 20, 100, 'OfficeSupply Ltd'),
-            ('PRD005', 'Keyboard', 'Mechanical keyboard with RGB backlighting', 'Input Devices', 79.99, 45.00, 80, 30, 150, 'KeyboardMaker')
+            ('PRD001', 'Laptop Pro', 'High-performance laptop for professionals', 'Electronics', 14999000, 11250000, 25, 10, 100, 'TechSupplier Inc'),  # ~$999 -> Rp 14,999,000
+            ('PRD002', 'Wireless Mouse', 'Ergonomic wireless mouse with long battery life', 'Accessories', 449000, 225000, 150, 50, 300, 'AccessoryHub'),  # ~$30 -> Rp 449,000
+            ('PRD003', 'USB Cable', 'High-speed USB-C cable 6ft', 'Cables', 149000, 60000, 200, 100, 500, 'CableCorp'),  # ~$10 -> Rp 149,000
+            ('PRD004', 'Monitor Stand', 'Adjustable monitor stand for better ergonomics', 'Furniture', 749000, 375000, 45, 20, 100, 'OfficeSupply Ltd'),  # ~$50 -> Rp 749,000
+            ('PRD005', 'Keyboard', 'Mechanical keyboard with RGB backlighting', 'Input Devices', 1199000, 675000, 80, 30, 150, 'KeyboardMaker')  # ~$80 -> Rp 1,199,000
         ]
         
         cursor.executemany('''
@@ -169,11 +169,11 @@ def insert_sample_data(cursor):
     cursor.execute("SELECT COUNT(*) FROM sales_orders")
     if cursor.fetchone()[0] == 0:
         orders = [
-            ('ORD001', 1, '2024-01-15', 1299.99, 'completed', 'Credit Card', 'John Sales', 'First order'),
-            ('ORD002', 2, '2024-01-16', 89.99, 'pending', 'Cash', 'Jane Sales', 'Rush order'),
-            ('ORD003', 3, '2024-01-17', 2499.99, 'shipped', 'Bank Transfer', 'Bob Sales', 'Bulk order'),
-            ('ORD004', 4, '2024-01-18', 599.99, 'processing', 'Credit Card', 'Alice Sales', 'Regular order'),
-            ('ORD005', 5, '2024-01-19', 199.99, 'completed', 'Cash', 'Charlie Sales', 'Quick sale')
+            ('ORD001', 1, '2024-01-15', 19500000, 'completed', 'Credit Card', 'John Sales', 'First order'),  # ~$1300 -> Rp 19,500,000
+            ('ORD002', 2, '2024-01-16', 1350000, 'pending', 'Cash', 'Jane Sales', 'Rush order'),  # ~$90 -> Rp 1,350,000
+            ('ORD003', 3, '2024-01-17', 37500000, 'shipped', 'Bank Transfer', 'Bob Sales', 'Bulk order'),  # ~$2500 -> Rp 37,500,000
+            ('ORD004', 4, '2024-01-18', 9000000, 'processing', 'Credit Card', 'Alice Sales', 'Regular order'),  # ~$600 -> Rp 9,000,000
+            ('ORD005', 5, '2024-01-19', 3000000, 'completed', 'Cash', 'Charlie Sales', 'Quick sale')  # ~$200 -> Rp 3,000,000
         ]
         
         cursor.executemany('''
