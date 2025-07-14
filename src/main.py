@@ -13,6 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database.init_db import init_database
 from utils.auth import check_login, login_user, logout_user
 from utils.helpers import format_currency
+from utils.translations import init_language, get_current_language, set_language, t
 from config import Config
 
 # ERP Pages
@@ -44,8 +45,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Initialize database
+# Initialize database and language
 init_database()
+init_language()
 
 # Custom CSS for better UI
 st.markdown("""
@@ -82,91 +84,130 @@ def main():
         show_main_app()
 
 def show_login_page():
-    st.markdown('<div class="main-header"><h1>🏢 PenzFlow</h1><p>Enterprise Resource Planning & Sales Force Automation</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="main-header"><h1>🏢 PenzFlow</h1><p>{t("app_title")}</p></div>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
-        st.markdown("### 🔐 Login")
-        username = st.text_input("Username", placeholder="Enter your username")
-        password = st.text_input("Password", type="password", placeholder="Enter your password")
+        st.markdown(f"### 🔐 {t('login_title')}")
+        st.caption(t('login_subtitle'))
+        username = st.text_input(t('username'), placeholder=f"{t('username').lower()}...")
+        password = st.text_input(t('password'), type="password", placeholder=f"{t('password').lower()}...")
         
         col_a, col_b = st.columns(2)
         with col_a:
-            if st.button("Login", use_container_width=True):
+            if st.button(t('login'), use_container_width=True):
                 if login_user(username, password):
                     st.session_state.logged_in = True
                     st.session_state.username = username
+                    st.success(t('login_success'))
                     st.rerun()
                 else:
-                    st.error("Invalid username or password")
+                    st.error(t('invalid_credentials'))
         
         with col_b:
-            if st.button("Demo Login", use_container_width=True):
+            if st.button(f"Demo {t('login')}", use_container_width=True):
                 st.session_state.logged_in = True
                 st.session_state.username = "demo"
+                st.success(t('login_success'))
                 st.rerun()
+        
+        # Language info note
+        st.markdown("---")
+        st.caption(f"💡 {t('language')} dapat diubah di halaman {t('settings')} / Language can be changed in Settings page")
 
 def show_main_app():
-    # Header
-    st.markdown('<div class="main-header"><h1>📊 PenzFlow Dashboard</h1></div>', unsafe_allow_html=True)
+    # Clean header without language toggle
+    st.markdown(f'<div class="main-header"><h1>📊 {t("app_title")}</h1></div>', unsafe_allow_html=True)
     
     # Sidebar
     with st.sidebar:
-        st.markdown(f"### Welcome, {st.session_state.get('username', 'User')}!")
+        st.markdown(f"### {t('welcome')}, {st.session_state.get('username', 'User')}!")
         user_role = st.session_state.get('user_role', 'user')
-        st.markdown(f"**Role:** {user_role.title()}")
+        st.markdown(f"**{t('role')}:** {user_role.title()}")
+        
+        # Language indicator in sidebar
+        current_lang = get_current_language()
+        lang_display = "🇮🇩 ID" if current_lang == 'id' else "🇺🇸 EN"
+        st.markdown(f"**{t('language')}:** {lang_display}")
+        st.caption(f"💡 {t('settings')} → {t('language')}")
+        
         st.markdown("---")
         
         # Different navigation based on user role
         if user_role in ['salesman', 'sales_manager']:
-            page = st.selectbox(
-                "Navigate to:",
-                ["SFA Dashboard", "Attendance", "Customer Visits", "Mobile Orders", "Activities", "Targets", "Expenses", "ERP Dashboard", "Customers", "Products", "Reports"]
-            )
+            page_options = [
+                t("dashboard"), t("attendance"), t("visits"), t("mobile_orders"), 
+                t("activities"), t("targets"), t("expenses"), t("dashboard") + " ERP", 
+                t("customers"), t("products"), t("reports")
+            ]
+            page = st.selectbox(f"{t('dashboard')}:", page_options)
         else:
-            page = st.selectbox(
-                "Navigate to:",
-                ["Dashboard", "Customers", "Products", "Sales", "Inventory", "Reports", "SFA Management", "Settings"]
-            )
+            page_options = [
+                t("dashboard"), t("customers"), t("products"), t("sales"), 
+                t("inventory"), t("reports"), t("sfa_management"), t("settings")
+            ]
+            page = st.selectbox(f"{t('dashboard')}:", page_options)
         
         st.markdown("---")
-        if st.button("Logout"):
+        if st.button(t('logout')):
             logout_user()
+            st.success(t('logout_success'))
             st.rerun()
     
+    # Main content based on selected page - map translated names back to English for routing
+    page_mapping = {
+        t("dashboard"): "Dashboard",
+        t("attendance"): "Attendance", 
+        t("visits"): "Customer Visits",
+        t("mobile_orders"): "Mobile Orders",
+        t("activities"): "Activities",
+        t("targets"): "Targets", 
+        t("expenses"): "Expenses",
+        t("dashboard") + " ERP": "ERP Dashboard",
+        t("customers"): "Customers",
+        t("products"): "Products", 
+        t("sales"): "Sales",
+        t("inventory"): "Inventory",
+        t("reports"): "Reports",
+        t("sfa_management"): "SFA Management",
+        t("settings"): "Settings"
+    }
+    
+    actual_page = page_mapping.get(page, page)
+    
     # Main content based on selected page
-    if page == "Dashboard":
+    if actual_page == "Dashboard":
         show_dashboard()
-    elif page == "SFA Dashboard":
+    elif actual_page == "SFA Dashboard":
         show_sfa_dashboard()
-    elif page == "ERP Dashboard":
+    elif actual_page == "ERP Dashboard":
         show_dashboard()
-    elif page == "Attendance":
+    elif actual_page == "Attendance":
         show_attendance()
-    elif page == "Customer Visits":
+    elif actual_page == "Customer Visits":
         show_customer_visits()
-    elif page == "Mobile Orders":
+    elif actual_page == "Mobile Orders":
         show_mobile_orders()
-    elif page == "Activities":
+    elif actual_page == "Activities":
         show_sales_activities()
-    elif page == "Targets":
+    elif actual_page == "Targets":
         show_sales_targets()
-    elif page == "Expenses":
+    elif actual_page == "Expenses":
         show_expenses()
-    elif page == "Customers":
+    elif actual_page == "Customers":
         show_customers()
-    elif page == "Products":
+    elif actual_page == "Products":
         show_products()
-    elif page == "Sales":
+    elif actual_page == "Sales":
         show_sales()
-    elif page == "Inventory":
+    elif actual_page == "Inventory":
         show_inventory()
-    elif page == "Reports":
+    elif actual_page == "Reports":
         show_reports()
-    elif page == "SFA Management":
+    elif actual_page == "SFA Management":
         show_sfa_management()
-    elif page == "Settings":
+    elif actual_page == "Settings":
         show_settings()
 
 if __name__ == "__main__":

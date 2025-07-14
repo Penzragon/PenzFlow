@@ -2,24 +2,25 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from utils.helpers import format_currency
+from utils.translations import t
 
 def show_products():
     """Product Management Page for FMCG Business"""
-    st.header("📦 Product Management")
+    st.header(f"📦 {t('products')}")
     
-    tab1, tab2, tab3, tab4 = st.tabs(["Product List", "Add Product", "Variants & Pricing", "Categories"])
+    tab1, tab2, tab3, tab4 = st.tabs([t("product_list"), t("add_product"), t("variants_pricing"), t("categories")])
     
     with tab1:
-        st.subheader("Product Catalog")
+        st.subheader(t("product_list"))
         
         # Search and filter
         col1, col2, col3 = st.columns(3)
         with col1:
-            search_term = st.text_input("🔍 Search Products", placeholder="Product name or SKU")
+            search_term = st.text_input(f"🔍 {t('search')} {t('products')}", placeholder=f"{t('product_name')} atau SKU")
         with col2:
-            category_filter = st.selectbox("Filter by Category", ["All", "Beverages", "Snacks", "Dairy", "Personal Care", "Household"])
+            category_filter = st.selectbox(f"{t('filter')} {t('category')}", [t("all"), "Beverages", "Snacks", "Dairy", "Personal Care", "Household"])
         with col3:
-            status_filter = st.selectbox("Filter by Status", ["All", "Active", "Inactive", "Low Stock", "Out of Stock"])
+            status_filter = st.selectbox(f"{t('filter')} {t('status')}", [t("all"), t("active"), t("inactive"), "Low Stock", "Out of Stock"])
         
         # FMCG product data with variants
         products_data = {
@@ -39,11 +40,13 @@ def show_products():
         filtered_df = df
         if search_term:
             filtered_df = df[df['Product'].str.contains(search_term, case=False) | df['SKU'].str.contains(search_term, case=False)]
-        if category_filter != "All":
+        if category_filter != t("all"):
             filtered_df = filtered_df[filtered_df['Category'] == category_filter]
-        if status_filter != "All":
+        if status_filter != t("all"):
             if status_filter == "Low Stock":
                 filtered_df = filtered_df[filtered_df['Status'].str.contains('Low Stock')]
+            elif status_filter == t("active"):
+                filtered_df = filtered_df[filtered_df['Status'].str.contains('Active')]
             else:
                 filtered_df = filtered_df[filtered_df['Status'].str.contains(status_filter)]
         
@@ -71,24 +74,24 @@ def show_products():
                 )
     
     with tab2:
-        st.subheader("Add New Product")
+        st.subheader(t("add_product"))
         
         with st.form("add_product"):
             # Basic product information
-            st.markdown("### Basic Information")
+            st.markdown(f"### {t('description')}")
             col1, col2 = st.columns(2)
             
             with col1:
-                product_name = st.text_input("Product Name", placeholder="e.g., Aqua")
+                product_name = st.text_input(t("product_name"), placeholder="e.g., Aqua")
                 brand = st.text_input("Brand", placeholder="e.g., Aqua, Indomie")
-                category = st.selectbox("Category", ["Beverages", "Snacks", "Dairy", "Personal Care", "Household", "Food", "Groceries"])
+                category = st.selectbox(t("category"), ["Beverages", "Snacks", "Dairy", "Personal Care", "Household", "Food", "Groceries"])
             
             with col2:
-                sku = st.text_input("SKU", placeholder="e.g., AQU004")
+                sku = st.text_input(t("product_code"), placeholder="e.g., AQU004")
                 barcode = st.text_input("Barcode", placeholder="Product barcode")
                 supplier = st.text_input("Supplier", placeholder="Supplier name")
             
-            description = st.text_area("Product Description", placeholder="Detailed product description")
+            description = st.text_area(t("description"), placeholder=f"{t('description')}...")
             
             # Product specifications
             st.markdown("### Product Specifications")
@@ -100,19 +103,19 @@ def show_products():
             
             with col2:
                 shelf_life = st.number_input("Shelf Life (days)", min_value=0, value=365, step=1)
-                min_stock = st.number_input("Minimum Stock Level", min_value=0, value=50, step=1)
+                min_stock = st.number_input(t("minimum_stock"), min_value=0, value=50, step=1)
             
             with col3:
                 max_stock = st.number_input("Maximum Stock Level", min_value=0, value=1000, step=1)
                 initial_stock = st.number_input("Initial Stock", min_value=0, value=100, step=1)
             
-            if st.form_submit_button("Add Product", use_container_width=True):
+            if st.form_submit_button(t("add_product"), use_container_width=True):
                 if product_name and sku and brand:
-                    st.success(f"✅ Product '{product_name}' (SKU: {sku}) added successfully!")
-                    st.info("You can now add variants and pricing tiers in the 'Variants & Pricing' tab.")
+                    st.success(f"✅ {t('product_added')}")
+                    st.info(f"{t('variant_added')} '{t('variants_pricing')}'.")
                     st.balloons()
                 else:
-                    st.error("❌ Please fill in all required fields (Product Name, SKU, Brand)")
+                    st.error(f"❌ {t('error')}: {t('product_name')}, SKU, Brand")
     
     with tab3:
         st.subheader("Product Variants & Pricing Tiers")

@@ -1,12 +1,13 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+from utils.translations import t, get_current_language, set_language
 
 def show_settings():
     """Settings Management Page"""
-    st.header("⚙️ Settings")
+    st.header(f"⚙️ {t('settings')}")
     
-    tab1, tab2, tab3 = st.tabs(["General", "Users", "System"])
+    tab1, tab2, tab3, tab4 = st.tabs([t("general"), "Users", "System", t("language")])
     
     with tab1:
         st.subheader("General Settings")
@@ -21,8 +22,54 @@ def show_settings():
             tax_rate = st.number_input("Default Tax Rate (%)", min_value=0.0, max_value=100.0, value=11.0, step=0.1)
             fiscal_year_start = st.selectbox("Fiscal Year Start", ["January", "April", "July", "October"])
             
-            if st.form_submit_button("Save General Settings"):
-                st.success("Settings saved successfully!")
+            if st.form_submit_button(t("save")):
+                st.success(f"{t('success')}!")
+    
+    with tab4:
+        st.subheader(f"🌐 {t('language')} / Language Settings")
+        st.write(f"{t('language')} saat ini / Current language: **{get_current_language().upper()}**")
+        
+        col1, col2 = st.columns([1, 2])
+        
+        with col1:
+            current_lang = get_current_language()
+            lang_options = {
+                "🇮🇩 Bahasa Indonesia": "id", 
+                "🇺🇸 English": "en"
+            }
+            
+            selected_lang = st.selectbox(
+                f"{t('language')} / Language",
+                options=list(lang_options.keys()),
+                index=0 if current_lang == 'id' else 1,
+                help="Pilih bahasa untuk antarmuka aplikasi / Select language for the application interface"
+            )
+            
+            if st.button(f"💾 {t('save')} {t('language')}", use_container_width=True):
+                new_lang = lang_options[selected_lang]
+                if new_lang != current_lang:
+                    set_language(new_lang)
+                    st.success(f"✅ {t('language')} berhasil diubah / Language successfully changed!")
+                    st.rerun()
+                else:
+                    st.info(f"ℹ️ {t('language')} sudah dipilih / Language already selected")
+        
+        with col2:
+            st.markdown("### 📋 Language Information")
+            st.markdown("""
+            **Available Languages:**
+            - 🇮🇩 **Bahasa Indonesia** - Default untuk pengguna lokal
+            - 🇺🇸 **English** - For international users
+            
+            **Features:**
+            - ✅ Interface translation
+            - ✅ Menu navigation
+            - ✅ Business terminology
+            - ✅ Error messages
+            - ✅ FMCG-specific terms
+            
+            **Note:** Currency and date formats remain in Indonesian standard regardless of language selection.
+            """)
     
     with tab2:
         st.subheader("User Management")
