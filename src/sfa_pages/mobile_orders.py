@@ -12,94 +12,93 @@ def show_mobile_orders():
     with tab1:
         st.subheader("📝 Create New Order")
         
-        # Order header
-        with st.form("mobile_order"):
-            # Customer selection
-            col1, col2 = st.columns(2)
-            with col1:
-                customer = st.selectbox(
-                    "Select Customer",
-                    ["PT. Teknologi Maju", "CV. Bisnis Sukses", "UD. Perdagangan Jaya", "PT. Solusi Digital", "New Customer"]
-                )
-                if customer == "New Customer":
-                    new_customer_name = st.text_input("Customer Name")
-                    new_customer_phone = st.text_input("Phone Number")
+        # Order header - Customer and basic info
+        col1, col2 = st.columns(2)
+        with col1:
+            customer = st.selectbox(
+                "Select Customer",
+                ["PT. Teknologi Maju", "CV. Bisnis Sukses", "UD. Perdagangan Jaya", "PT. Solusi Digital", "New Customer"]
+            )
+            if customer == "New Customer":
+                new_customer_name = st.text_input("Customer Name")
+                new_customer_phone = st.text_input("Phone Number")
+        
+        with col2:
+            order_date = st.date_input("Order Date", value=date.today())
+            payment_terms = st.selectbox("Payment Terms", ["Cash", "Net 7", "Net 15", "Net 30"])
+        
+        # Visit reference
+        visit_ref = st.selectbox("Link to Visit", ["Current Visit", "Standalone Order", "Follow-up Visit"])
+        
+        st.markdown("---")
+        st.subheader("🛒 Order Items")
+        
+        # Initialize order items in session state
+        if 'mobile_order_items' not in st.session_state:
+            st.session_state.mobile_order_items = []
+        
+        # Product selection
+        col1, col2, col3, col4, col5 = st.columns([3, 1, 2, 2, 1])
+        
+        with col1:
+            product = st.selectbox("Product", ["Laptop Pro", "Wireless Mouse", "USB Cable", "Monitor Stand", "Keyboard"])
+        with col2:
+            quantity = st.number_input("Qty", min_value=1, value=1)
+        with col3:
+            # Auto-fill price based on product
+            if product == "Laptop Pro":
+                unit_price = 14999000
+            elif product == "Wireless Mouse":
+                unit_price = 449000
+            elif product == "USB Cable":
+                unit_price = 149000
+            elif product == "Monitor Stand":
+                unit_price = 749000
+            else:
+                unit_price = 1199000
             
-            with col2:
-                order_date = st.date_input("Order Date", value=date.today())
-                payment_terms = st.selectbox("Payment Terms", ["Cash", "Net 7", "Net 15", "Net 30"])
+            st.write(f"Unit Price: {format_currency(unit_price, 'IDR')}")
+        with col4:
+            discount = st.number_input("Discount %", min_value=0.0, max_value=50.0, value=0.0, step=0.5)
+        with col5:
+            if st.button("➕ Add"):
+                item_total = unit_price * quantity * (1 - discount/100)
+                st.session_state.mobile_order_items.append({
+                    'product': product,
+                    'quantity': quantity,
+                    'unit_price': unit_price,
+                    'discount': discount,
+                    'total': item_total
+                })
+                st.success(f"Added {product}")
+        
+        # Display added items
+        if st.session_state.mobile_order_items:
+            st.subheader("📋 Order Summary")
             
-            # Visit reference
-            visit_ref = st.selectbox("Link to Visit", ["Current Visit", "Standalone Order", "Follow-up Visit"])
+            items_data = []
+            total_amount = 0
             
-            st.markdown("---")
-            st.subheader("🛒 Order Items")
-            
-            # Initialize order items in session state
-            if 'mobile_order_items' not in st.session_state:
-                st.session_state.mobile_order_items = []
-            
-            # Product selection
-            col1, col2, col3, col4, col5 = st.columns([3, 1, 2, 2, 1])
-            
-            with col1:
-                product = st.selectbox("Product", ["Laptop Pro", "Wireless Mouse", "USB Cable", "Monitor Stand", "Keyboard"])
-            with col2:
-                quantity = st.number_input("Qty", min_value=1, value=1)
-            with col3:
-                # Auto-fill price based on product
-                if product == "Laptop Pro":
-                    unit_price = 14999000
-                elif product == "Wireless Mouse":
-                    unit_price = 449000
-                elif product == "USB Cable":
-                    unit_price = 149000
-                elif product == "Monitor Stand":
-                    unit_price = 749000
-                else:
-                    unit_price = 1199000
+            for i, item in enumerate(st.session_state.mobile_order_items):
+                items_data.append({
+                    'Product': item['product'],
+                    'Quantity': item['quantity'],
+                    'Unit Price': format_currency(item['unit_price'], 'IDR'),
+                    'Discount': f"{item['discount']}%",
+                    'Total': format_currency(item['total'], 'IDR')
+                })
+                total_amount += item['total']
                 
-                st.write(f"Unit Price: {format_currency(unit_price, 'IDR')}")
-            with col4:
-                discount = st.number_input("Discount %", min_value=0.0, max_value=50.0, value=0.0, step=0.5)
-            with col5:
-                if st.button("➕ Add"):
-                    item_total = unit_price * quantity * (1 - discount/100)
-                    st.session_state.mobile_order_items.append({
-                        'product': product,
-                        'quantity': quantity,
-                        'unit_price': unit_price,
-                        'discount': discount,
-                        'total': item_total
-                    })
-                    st.success(f"Added {product}")
+                # Remove button for each item
+                if st.button(f"❌ Remove {item['product']}", key=f"remove_{i}"):
+                    st.session_state.mobile_order_items.pop(i)
+                    st.rerun()
             
-            # Display added items
+            df_items = pd.DataFrame(items_data)
+            st.dataframe(df_items, use_container_width=True)
+                
+            # Order totals
             if st.session_state.mobile_order_items:
-                st.subheader("📋 Order Summary")
-                
-                items_data = []
-                total_amount = 0
-                
-                for i, item in enumerate(st.session_state.mobile_order_items):
-                    items_data.append({
-                        'Product': item['product'],
-                        'Quantity': item['quantity'],
-                        'Unit Price': format_currency(item['unit_price'], 'IDR'),
-                        'Discount': f"{item['discount']}%",
-                        'Total': format_currency(item['total'], 'IDR')
-                    })
-                    total_amount += item['total']
-                    
-                    # Remove button for each item
-                    if st.button(f"❌ Remove {item['product']}", key=f"remove_{i}"):
-                        st.session_state.mobile_order_items.pop(i)
-                        st.rerun()
-                
-                df_items = pd.DataFrame(items_data)
-                st.dataframe(df_items, use_container_width=True)
-                
-                # Order totals
                 col1, col2 = st.columns(2)
                 with col1:
                     additional_discount = st.number_input("Additional Discount %", min_value=0.0, max_value=20.0, value=0.0)
@@ -116,30 +115,27 @@ def show_mobile_orders():
                     st.metric("Total Discount", format_currency(additional_discount_amount, 'IDR'))
                     st.metric("Tax", format_currency(tax_amount, 'IDR'))
                     st.metric("**Final Total**", format_currency(final_total, 'IDR'))
-            
-            # Order notes
-            special_instructions = st.text_area("Special Instructions", placeholder="Delivery notes, customer requirements, etc.")
-            
-            # Submit order
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                if st.form_submit_button("💾 Save as Draft", use_container_width=True):
-                    st.info("Order saved as draft!")
-            
-            with col2:
-                if st.form_submit_button("📤 Submit Order", use_container_width=True):
-                    if st.session_state.mobile_order_items:
+                
+                # Order notes
+                special_instructions = st.text_area("Special Instructions", placeholder="Delivery notes, customer requirements, etc.")
+                
+                # Submit order
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    if st.button("💾 Save as Draft", use_container_width=True):
+                        st.info("Order saved as draft!")
+                
+                with col2:
+                    if st.button("📤 Submit Order", use_container_width=True):
                         st.success("✅ Order submitted successfully!")
                         st.balloons()
                         # Clear items after submission
                         st.session_state.mobile_order_items = []
-                    else:
-                        st.error("Please add at least one item to the order")
-            
-            with col3:
-                if st.form_submit_button("🖨️ Print & Submit", use_container_width=True):
-                    st.info("Generating printable order...")
+                
+                with col3:
+                    if st.button("🖨️ Print & Submit", use_container_width=True):
+                        st.info("Generating printable order...")
     
     with tab2:
         st.subheader("📊 My Order History")
